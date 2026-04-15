@@ -19,6 +19,11 @@ struct Person {
 
     Person* left;
     Person* right;
+
+    Person() {
+        left = nullptr;
+        right = nullptr;
+    }
 };
 
 #endif
