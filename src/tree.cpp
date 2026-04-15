@@ -52,25 +52,48 @@ Person* createPersonFromCSV(string line) {
     return p;
 }
 
-void loadFromCSV(const string& filename) {
+void loadFromCSV(Tree& tree, const string& filename) {
     ifstream file(filename);
     string line;
 
-    cout << "Entrando a loadFromCSV..." << endl;
-
-    if (!file.is_open()) {
-        cout << "Error al abrir el archivo\n";
-        return;
-    }
-
-    // Saltar encabezado
-    getline(file, line);
+    getline(file, line); // header
 
     while (getline(file, line)) {
         Person* p = createPersonFromCSV(line);
-        cout << "LINEA RAW: [" << line << "]" << endl;
-        cout << "Leido: " << p->name << " " << p->last_name << endl;
+
+        tree.insert(p);
     }
 
     file.close();
+}
+
+Person* Tree::findById(Person* node, int id) {
+    if (node == nullptr) return nullptr;
+
+    if (node->id == id)
+        return node;
+
+    Person* left = findById(node->left, id);
+    if (left != nullptr) return left;
+
+    return findById(node->right, id);
+}
+
+void Tree::insert(Person* node) {
+
+    if (root == nullptr) {
+        root = node;
+        return;
+    }
+
+    Person* boss = findById(root, node->id_boss);
+
+    if (boss != nullptr) {
+        if (boss->left == nullptr) {
+            boss->left = node;
+        }
+        else if (boss->right == nullptr) {
+            boss->right = node;
+        }
+    }
 }

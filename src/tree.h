@@ -14,8 +14,12 @@ public:
     Tree();
     void setRoot(Person* node);
     Person* getRoot();
+
+    void insert(Person* node);
+    Person* findById(Person* node, int id);
 };
 
-void loadFromCSV(const string& filename);
+
+void loadFromCSV(Tree& tree, const string& filename);
 
 #endif
