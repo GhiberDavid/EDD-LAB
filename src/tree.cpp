@@ -2,6 +2,10 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <algorithm>  // Para remove_if
+#include <cctype>     // Para isspace
+
+using namespace std;
 
 Tree::Tree() {
     root = nullptr;
@@ -56,20 +60,73 @@ void Tree::insert(Person* node) {
 Person* createPersonFromCSV(string line) {
     stringstream ss(line);
     string value;
-
+    
     Person* p = new Person();
+    
+    try {
+        // ID
+        getline(ss, value, ',');
+        if (value.empty()) value = "0";
+        p->id = stoi(value);
+        
+        // Name
+        getline(ss, p->name, ',');
+        
+        // Last name
+        getline(ss, p->last_name, ',');
+        
+        // Gender
+        getline(ss, value, ',');
+        if (value.empty()) {
+            p->gender = 'H';
+        } else {
+            p->gender = value[0];
+        }
+        
+        // Age
+        getline(ss, value, ',');
+        if (value.empty()) value = "0";
+        p->age = stoi(value);
+        
+        // ID Boss (acepta números negativos)
+        getline(ss, value, ',');
+        if (value.empty()) value = "0";
 
-    getline(ss, value, ','); p->id = stoi(value);
-    getline(ss, p->name, ',');
-    getline(ss, p->last_name, ',');
-    getline(ss, value, ','); p->gender = value[0];
-    getline(ss, value, ','); p->age = stoi(value);
-    getline(ss, value, ','); p->id_boss = stoi(value);
-    getline(ss, value, ','); p->is_dead = stoi(value);
-    getline(ss, value, ','); p->in_jail = stoi(value);
-    getline(ss, value, ','); p->was_boss = stoi(value);
-     getline(ss, value, ','); p->is_boss = stoi(value);
-
+        // Eliminar espacios en blanco si es que existen
+        value.erase(remove_if(value.begin(), value.end(), ::isspace), value.end());
+        p->id_boss = stoi(value);  // funcionando con -1
+        
+        // is_dead
+        getline(ss, value, ',');
+        if (value.empty()) value = "0";
+        p->is_dead = stoi(value);
+        
+        // in_jail
+        getline(ss, value, ',');
+        if (value.empty()) value = "0";
+        p->in_jail = stoi(value);
+        
+        // was_boss
+        getline(ss, value, ',');
+        if (value.empty()) value = "0";
+        p->was_boss = stoi(value);
+        
+        // is_boss
+        getline(ss, value, ',');
+        if (value.empty()) value = "0";
+        p->is_boss = stoi(value);
+        
+    } catch (const exception& e) {
+        cout << "Error al parsear linea: " << line << endl;
+        cout << "Error: " << e.what() << " - Valor problematico: " << value << endl;
+        delete p;
+        return nullptr;
+    }
+    
+    // Inicializar punteros
+    p->left = nullptr;
+    p->right = nullptr;
+    
     return p;
 }
 
@@ -81,11 +138,36 @@ void loadFromCSV(Tree& tree, const string& filename) {
     }
     
     string line;
-    getline(file, line); // header
     
+    // Leer header (primera línea)
+    if (!getline(file, line)) {
+        cout << "Error: Archivo CSV vacio" << endl;
+        file.close();
+        return;
+    }
+    
+    // Leer datos línea por línea
+    int lineCount = 0;
     while (getline(file, line)) {
+        lineCount++;
+        
+        // Saltar líneas vacías
+        if (line.empty()) {
+            continue;
+        }
+        
+        // Eliminar espacios en blanco al inicio y final
+        size_t start = line.find_first_not_of(" \t\r\n");
+        if (start == string::npos) continue;
+        line = line.substr(start);
+        
+        // Crear persona desde CSV
         Person* p = createPersonFromCSV(line);
-        tree.insert(p);
+        if (p != nullptr) {
+            tree.insert(p);
+        } else {
+            cout << "Advertencia: Error en linea " << lineCount << endl;
+        }
     }
     
     file.close();
@@ -177,12 +259,10 @@ bool Tree::verificarYActualizarJefe() {
 void Tree::buscarSucesorEnArbol(Person* nodo, Person*& sucesor) {
     if (nodo == nullptr || sucesor != nullptr) return;
     
-    // Recorrido in-order
     buscarSucesorEnArbol(nodo->left, sucesor);
     
-    // Verificar si este nodo es candidato (vivo, fuera de cárcel)
-    // IMPORTANTE: No excluir al jefe actual aquí, porque puede ser candidato si está disponible
-    if (sucesor == nullptr && !nodo->is_dead && !nodo->in_jail) {
+    // Verificando si este nodo es candidato
+    if (sucesor == nullptr && !nodo->is_dead) {  // Nota: No se excluyen encarcelados aquí
         sucesor = nodo;
         return;
     }
@@ -194,8 +274,8 @@ bool Tree::asignarNuevoJefe() {
     Person* jefeActual = this->encontrarJefeActual(root);
     if (jefeActual == nullptr) return false;
     
-    // Buscar sucesor (con búsqueda en otro sucesor habilitada)
-    Person* sucesor = encontrarSucesor(jefeActual, true);
+    // Buscando sucesor con todas las opciones habilitadas
+    Person* sucesor = encontrarSucesor(jefeActual, true, true, true);
     
     if (sucesor != nullptr) {
         jefeActual->is_boss = false;
@@ -204,6 +284,10 @@ bool Tree::asignarNuevoJefe() {
         
         cout << "Nuevo jefe asignado: " << sucesor->name << " " 
              << sucesor->last_name << " (ID: " << sucesor->id << ")\n";
+        
+        if (sucesor->in_jail) {
+            cout << "Nota: El nuevo jefe está encarcelado.\n";
+        }
         
         return true;
     } else {
@@ -382,26 +466,171 @@ Person* Tree::buscarSucesorEnArbolCompleto(Person* nodo) {
     return sucesor;
 }
 
-Person* Tree::encontrarSucesor(Person* nodo, bool buscarEnOtroSucesor) {
+Person* Tree::encontrarSucesor(Person* nodo, bool buscarEnOtroSucesor, 
+                               bool busquedaAscendente, bool incluirEncarcelados) {
     if (nodo == nullptr) return nullptr;
     
-    // Primero se busca en su propio árbol (hijos y descendientes)
-    Person* sucesor = buscarSucesorEnArbolCompleto(nodo);
+    Person* sucesor = nullptr;
     
-    // Si no se encontró y se debe buscar en el otro sucesor
-    if (sucesor == nullptr && buscarEnOtroSucesor) {
+    // NIVEL 1: Buscando en su propio árbol (hijos y descendientes)
+    sucesor = buscarSucesorEnArbolCompleto(nodo);
+    if (sucesor != nullptr) {
+        cout << "Sucesor encontrado en su propio árbol: " << sucesor->name << endl;
+        return sucesor;
+    }
+    
+    // NIVEL 2: Buscando en el otro sucesor (hermano)
+    if (buscarEnOtroSucesor && sucesor == nullptr) {
         Person* otroSucesor = obtenerOtroSucesor(nodo);
         if (otroSucesor != nullptr) {
-            cout << "   Buscando en el otro sucesor: " << otroSucesor->name << endl;
+            cout << "Buscando en el otro sucesor: " << otroSucesor->name << endl;
             sucesor = buscarSucesorEnArbolCompleto(otroSucesor);
             
-            // Si el otro sucesor está vivo y fuera de cárcel, él mismo puede ser el sucesor
-            if (sucesor == nullptr && !otroSucesor->is_dead && !otroSucesor->in_jail) {
+            if (sucesor == nullptr && esDisponible(otroSucesor, incluirEncarcelados)) {
                 sucesor = otroSucesor;
-                cout << "   El otro sucesor se convierte en jefe\n";
+                cout << "El otro sucesor se convierte en jefe\n";
             }
+            if (sucesor != nullptr) return sucesor;
         }
     }
     
+    // NIVEL 3: Búsqueda ascendente (subir niveles de jefes)
+    if (busquedaAscendente && sucesor == nullptr) {
+        cout << "Iniciando búsqueda ascendente...\n";
+        sucesor = buscarSucesorAscendente(nodo);
+        if (sucesor != nullptr) return sucesor;
+    }
+    
+    // NIVEL 4: Buscando jefe con dos sucesores
+    if (sucesor == nullptr) {
+        cout << "Buscando jefe con dos sucesores disponibles...\n";
+        Person* jefeConDos = buscarJefeConDosSucesores(nodo);
+        if (jefeConDos != nullptr) {
+            cout << "Jefe encontrado: " << jefeConDos->name << endl;
+            sucesor = buscarSucesorEnArbolCompleto(jefeConDos);
+            if (sucesor != nullptr) return sucesor;
+        }
+    }
+    
+    // NIVEL 5: Incluyendo encarcelados como última opción
+    if (incluirEncarcelados && sucesor == nullptr) {
+        cout << "Ultimo recurso: Buscando sucesor incluyendo encarcelados...\n";
+        sucesor = buscarSucesorIncluyendoEncarcelados(nodo);
+        if (sucesor != nullptr) {
+            cout << "Sucesor encontrado (encarcelado pero vivo): " << sucesor->name << endl;
+            return sucesor;
+        }
+        
+        // Si no hay en el árbol actual, buscar en toda la estructura
+        sucesor = buscarSucesorIncluyendoEncarcelados(root);
+        if (sucesor != nullptr) return sucesor;
+    }
+    
+    return nullptr;
+}
+
+// Verificando si un nodo está disponible (vivo y opcionalmente fuera de cárcel)
+bool Tree::esDisponible(Person* nodo, bool incluirEncarcelados) {
+    if (nodo == nullptr) return false;
+    if (nodo->is_dead) return false;
+    if (!incluirEncarcelados && nodo->in_jail) return false;
+    return true;
+}
+
+// Obteneniendo el jefe (padre) de un nodo
+Person* Tree::obtenerJefe(Person* nodo) {
+    return obtenerPadre(nodo);
+}
+
+// Contar cuántos sucesores disponibles tiene un nodo
+int Tree::contarSucesoresDisponibles(Person* nodo, bool incluirEncarcelados) {
+    if (nodo == nullptr) return 0;
+    
+    int contador = 0;
+    
+    // Contando en el subárbol izquierdo
+    if (nodo->left != nullptr && esDisponible(nodo->left, incluirEncarcelados)) {
+        contador++;
+    }
+    
+    // Contando en el subárbol derecho
+    if (nodo->right != nullptr && esDisponible(nodo->right, incluirEncarcelados)) {
+        contador++;
+    }
+    
+    return contador;
+}
+
+// Buscando el jefe más cercano con dos sucesores disponibles
+Person* Tree::buscarJefeConDosSucesores(Person* nodo) {
+    if (nodo == nullptr) return nullptr;
+    
+    // Verificando si el nodo actual tiene dos sucesores disponibles
+    if (contarSucesoresDisponibles(nodo, false) >= 2) {
+        return nodo;
+    }
+    
+    // Buscando en el padre (ascendente)
+    Person* padre = obtenerPadre(nodo);
+    if (padre != nullptr) {
+        return buscarJefeConDosSucesores(padre);
+    }
+    
+    return nullptr;
+}
+
+// Buscando sucesor incluyendo encarcelados (último recurso)
+Person* Tree::buscarSucesorIncluyendoEncarcelados(Person* nodo) {
+    if (nodo == nullptr) return nullptr;
+    
+    Person* sucesor = nullptr;
+    
+    // Función auxiliar para buscar incluyendo encarcelados
+    auto buscarConEncarcelados = [&](Person* actual, Person*& encontrado, auto&& buscarRef) -> void {
+        if (actual == nullptr || encontrado != nullptr) return;
+        
+        buscarRef(actual->left, encontrado, buscarRef);
+        
+        if (encontrado == nullptr && esDisponible(actual, true)) {  // true = incluir encarcelados
+            encontrado = actual;
+            return;
+        }
+        
+        buscarRef(actual->right, encontrado, buscarRef);
+    };
+    
+    buscarConEncarcelados(nodo, sucesor, buscarConEncarcelados);
     return sucesor;
+}
+
+// Búsqueda ascendente: subir niveles de jefes hasta encontrar un sucesor
+Person* Tree::buscarSucesorAscendente(Person* nodo) {
+    if (nodo == nullptr) return nullptr;
+    
+    // Primero buscar en el propio árbol del nodo
+    Person* sucesor = buscarSucesorEnArbolCompleto(nodo);
+    if (sucesor != nullptr) return sucesor;
+    
+    // Si no hay, subir al jefe (padre)
+    Person* jefe = obtenerPadre(nodo);
+    if (jefe != nullptr) {
+        cout << "   Subiendo al jefe: " << jefe->name << endl;
+        
+        // Buscar en el otro sucesor del jefe
+        Person* otroSucesor = obtenerOtroSucesor(jefe);
+        if (otroSucesor != nullptr && otroSucesor != nodo) {
+            cout << "   Buscando en el otro sucesor del jefe: " << otroSucesor->name << endl;
+            sucesor = buscarSucesorEnArbolCompleto(otroSucesor);
+            if (sucesor != nullptr) return sucesor;
+        }
+        
+        // Buscar en el árbol del jefe
+        sucesor = buscarSucesorEnArbolCompleto(jefe);
+        if (sucesor != nullptr) return sucesor;
+        
+        // Continuar subiendo
+        return buscarSucesorAscendente(jefe);
+    }
+    
+    return nullptr;
 }

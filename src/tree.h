@@ -18,6 +18,13 @@ private:
     Person* buscarSucesorEnArbolCompleto(Person* nodo);
     Person* findParent(Person* actual, Person* hijo);  // Función auxiliar
 
+    Person* buscarSucesorAscendente(Person* nodo);
+    Person* obtenerJefe(Person* nodo);
+    Person* buscarJefeConDosSucesores(Person* nodo);
+    int contarSucesoresDisponibles(Person* nodo, bool incluirEncarcelados = false);
+    Person* buscarSucesorIncluyendoEncarcelados(Person* nodo);
+    bool esDisponible(Person* nodo, bool incluirEncarcelados = false);
+
 public:
     Tree();
     ~Tree();
@@ -32,7 +39,8 @@ public:
     Person* encontrarJefeActual(Person* nodo); 
 
     bool verificarYActualizarJefe();
-    Person* encontrarSucesor(Person* nodo, bool buscarEnOtroSucesor = true);
+    Person* encontrarSucesor(Person* nodo, bool buscarEnOtroSucesor = true, 
+                             bool busquedaAscendente = true, bool incluirEncarcelados = false);
 
     bool asignarNuevoJefe();
 
