@@ -98,16 +98,30 @@ void Tree::mostrarLineaSucesion() {
         cout << "El arbol esta vacio.\n";
         return;
     }
-    mostrarLineaSucesionRec(root);
+
+    //Encontrando al jefe actual 
+    Person* jefeActual = encontrarJefeActual(root);
+
+    mostrarLineaSucesionRec(root, jefeActual);
 }
 
-void Tree::mostrarLineaSucesionRec(Person* nodo) {
+Person* Tree::encontrarJefeActual(Person* nodo) {
+    if (nodo == nullptr) return nullptr;
+    if(nodo->is_boss) return nodo;
+
+    Person* izquierdo = encontrarJefeActual(nodo->left);
+    if (izquierdo != nullptr) return izquierdo;
+
+    return encontrarJefeActual(nodo->right);
+}
+
+void Tree::mostrarLineaSucesionRec(Person* nodo, Person* jefeActual) {
     if (nodo == nullptr) return;
 
     //Recorrido in-order: izquierdo -> actual -> derecho
 
     //Primero se muestran los subordinados del hijo izquierdo (rama izquierda)
-    mostrarLineaSucesionRec(nodo->left);
+    mostrarLineaSucesionRec(nodo->left, jefeActual);
 
     // Mostrando el nodo actual si está vivo
     if (!nodo->is_dead) {
@@ -115,7 +129,7 @@ void Tree::mostrarLineaSucesionRec(Person* nodo) {
         << " | Nombre: " << nodo->name << " " << nodo->last_name
         << " | Edad: " << nodo->age;
         
-        if (nodo->is_boss) {
+        if (nodo == jefeActual && nodo->is_boss) {
             cout << " | * JEFE ACTUAL *";
         }
         if (nodo->in_jail) {
@@ -125,7 +139,7 @@ void Tree::mostrarLineaSucesionRec(Person* nodo) {
     }
 
     //Luego se muestran los subordinados del hijo derecho (rama derecha)
-    mostrarLineaSucesionRec(nodo->right);
+    mostrarLineaSucesionRec(nodo->right, jefeActual);
 }
 
 bool Tree::verificarYActualizarJefe() {
@@ -200,8 +214,6 @@ bool Tree::asignarNuevoJefe() {
         cout << "Nuevo jefe asignado: " << sucesor->name << " " 
              << sucesor->last_name << " (ID: " << sucesor->id << ")\n";
         
-        // Actualizar la raíz del árbol
-        root = sucesor;
         
         return true;
     } else {

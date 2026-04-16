@@ -10,6 +10,8 @@ class Tree {
 private:
     Person* root;
     void buscarSucesorEnArbol(Person* nodo, Person*& sucesor);
+    Person* encontrarJefeActual(Person* nodo);
+    void mostrarLineaSucesionRec(Person* nodo, Person* jefeActual);
 
 public:
     Tree();
@@ -30,13 +32,13 @@ public:
     bool asignarNuevoJefe();
 
     
-bool actualizarMiembro(int id, string name, string last_name, char gender, 
+    bool actualizarMiembro(int id, string name, string last_name, char gender, 
                        int age, bool is_dead, bool in_jail, 
                        bool was_boss, bool is_boss);
-void mostrarMiembro(Person* p);
+    void mostrarMiembro(Person* p);
 
-void actualizarMiembroInteractivo();
-};
+    void actualizarMiembroInteractivo();
+   };
 
 Person* createPersonFromCSV(string line);
 void loadFromCSV(Tree& tree, const string& filename);
