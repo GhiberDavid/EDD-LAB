@@ -25,9 +25,13 @@ int main() {
         return 1;
     } 
 
-    cout << "\nJefe actual: " << tree.getRoot()->name << " " 
-         << tree.getRoot()->last_name << " (Edad: " << tree.getRoot()->age << ")\n";
-    
+    // Mostrando información inicial
+    Person* jefeInicial = tree.encontrarJefeActual(tree.getRoot());
+    if (jefeInicial != nullptr) {
+        cout << "\nJefe actual: " << jefeInicial->name << " " 
+             << jefeInicial->last_name << " (Edad: " << jefeInicial->age << ")\n";
+    }
+
     int opcion;
     do {
         mostrarMenu();
@@ -37,21 +41,33 @@ int main() {
             case 1:
                 tree.mostrarLineaSucesion();
                 break;
-            case 2:
-                tree.getRoot()->is_dead = true;
-                cout << "\n El jefe ha muerto...\n";
-                tree.verificarYActualizarJefe();
+            case 2: {
+                Person* jefe = tree.encontrarJefeActual(tree.getRoot());
+                if (jefe != nullptr) {
+                    jefe->is_dead = true;
+                    cout << "\nEl jefe ha muerto...\n";
+                    tree.verificarYActualizarJefe();
+                }
                 break;
-            case 3:
-                tree.getRoot()->in_jail = true;
-                cout << "\n El jefe ha sido encarcelado...\n";
-                tree.verificarYActualizarJefe();
+            }
+            case 3:{
+                Person* jefe = tree.encontrarJefeActual(tree.getRoot());
+                if (jefe != nullptr) {
+                    jefe->in_jail = true;
+                    cout << "\nEl jefe ha sido encarcelado...\n";
+                    tree.verificarYActualizarJefe();
+                }
                 break;
-            case 4:
-                tree.getRoot()->age = 70;
-                cout << "\n El jefe ha cumplido 70 años...\n";
-                tree.verificarYActualizarJefe();
+            }
+            case 4: {
+                Person* jefe = tree.encontrarJefeActual(tree.getRoot());
+                if (jefe != nullptr) {
+                    jefe->age = 70;
+                    cout << "\nEl jefe ha cumplido 70 años...\n";
+                    tree.verificarYActualizarJefe();
+                }
                 break;
+            }
             case 5:
                 tree.actualizarMiembroInteractivo();
                 break;

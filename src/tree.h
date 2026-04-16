@@ -9,8 +9,8 @@ using namespace std;
 class Tree {
 private:
     Person* root;
+    Person* findById(Person* node, int id);
     void buscarSucesorEnArbol(Person* nodo, Person*& sucesor);
-    Person* encontrarJefeActual(Person* nodo);
     void mostrarLineaSucesionRec(Person* nodo, Person* jefeActual);
 
 public:
@@ -20,12 +20,11 @@ public:
     Person* getRoot();
     void setRoot(Person* node);
   
-
     void insert(Person* node);
-    Person* findById(Person* node, int id);
+    Person* findById(int id);
 
     void mostrarLineaSucesion();
-    void mostrarLineaSucesionRec(Person* nodo);
+    Person* encontrarJefeActual(Person* nodo);
 
     bool verificarYActualizarJefe();
     Person* encontrarSucesor(Person* nodo);
