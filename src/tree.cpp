@@ -18,26 +18,10 @@ Person* Tree::getRoot() {
     return root;
 }
 
-void loadFromCSV(Tree& tree, const string& filename) {
-    ifstream file(filename);
-    string line;
-
-    getline(file, line); // header
-
-    while (getline(file, line)) {
-        Person* p = createPersonFromCSV(line);
-
-        tree.insert(p);
-    }
-
-    file.close();
-}
-
 Person* Tree::findById(Person* node, int id) {
     if (node == nullptr) return nullptr;
 
-    if (node->id == id)
-        return node;
+    if (node->id == id) return node;
 
     Person* leftResult = findById(node->left, id);
     if (leftResult != nullptr) return leftResult;
@@ -106,4 +90,40 @@ void loadFromCSV(Tree& tree, const string& filename) {
     
     file.close();
     cout << "Datos cargados correctamente desde " << filename << endl;
+}
+
+void Tree::mostrarLineaSucesion() {
+    cout << "\n=== LINEA DE SUCESION (Miembros vivos) ===\n";
+    if (root == nullptr) {
+        cout << "El arbol esta vacio.\n";
+        return;
+    }
+    mostrarLineaSucesionRec(root);
+}
+
+void Tree::mostrarLineaSucesionRec(Person* nodo) {
+    if (nodo == nullptr) return;
+
+    //Recorrido in-order: izquierdo -> actual -> derecho
+
+    //Primero se muestran los subordinados del hijo izquierdo (rama izquierda)
+    mostrarLineaSucesionRec(nodo->left);
+
+    // Mostrando el nodo actual si está vivo
+    if (!nodo->is_dead) {
+        cout << "ID: " << nodo->id
+        << " | Nombre: " << nodo->name << " " << nodo->last_name
+        << " | Edad: " << nodo->age;
+        
+        if (nodo->is_boss) {
+            cout << " | * JEFE ACTUAL *";
+        }
+        if (nodo->in_jail) {
+            cout << " | [ENCARCELADO]";
+        }
+        cout << endl;
+    }
+
+    //Luego se muestran los subordinados del hijo derecho (rama derecha)
+    mostrarLineaSucesionRec(nodo->right);
 }

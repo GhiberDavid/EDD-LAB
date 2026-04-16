@@ -22,7 +22,7 @@ public:
     Person* findById(Person* node, int id);
 
     void mostrarLineaSucesion();
-    void mostrarArbol();
+    void mostrarLineaSucesionRec(Person* nodo);
 };
 
 Person* createPersonFromCSV(string line);
