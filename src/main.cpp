@@ -26,7 +26,7 @@ int main() {
     } 
 
     // Mostrando información inicial
-    Person* jefeInicial = tree.encontrarJefeActual(tree.getRoot());
+    Person* jefeInicial = tree.encontrarJefeActual(tree.getRoot()); 
     if (jefeInicial != nullptr) {
         cout << "\nJefe actual: " << jefeInicial->name << " " 
              << jefeInicial->last_name << " (Edad: " << jefeInicial->age << ")\n";
@@ -50,11 +50,11 @@ int main() {
                 }
                 break;
             }
-            case 3:{
+            case 3: {
                 Person* jefe = tree.encontrarJefeActual(tree.getRoot());
                 if (jefe != nullptr) {
                     jefe->in_jail = true;
-                    cout << "\nEl jefe ha sido encarcelado...\n";
+                    cout << "\n🔗 El jefe ha sido encarcelado...\n";
                     tree.verificarYActualizarJefe();
                 }
                 break;

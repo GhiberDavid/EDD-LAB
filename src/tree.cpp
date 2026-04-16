@@ -98,20 +98,21 @@ void Tree::mostrarLineaSucesion() {
         cout << "El arbol esta vacio.\n";
         return;
     }
-
-    //Encontrando al jefe actual 
-    Person* jefeActual = encontrarJefeActual(root);
-
+    
+    // Encontrar al jefe actual (usando this-> para claridad)
+    Person* jefeActual = this->encontrarJefeActual(root);
+    
+    // Recorrer todo el árbol desde la raíz estructural
     mostrarLineaSucesionRec(root, jefeActual);
 }
 
 Person* Tree::encontrarJefeActual(Person* nodo) {
     if (nodo == nullptr) return nullptr;
-    if(nodo->is_boss) return nodo;
-
+    if (nodo->is_boss) return nodo;
+    
     Person* izquierdo = encontrarJefeActual(nodo->left);
     if (izquierdo != nullptr) return izquierdo;
-
+    
     return encontrarJefeActual(nodo->right);
 }
 
@@ -145,23 +146,27 @@ void Tree::mostrarLineaSucesionRec(Person* nodo, Person* jefeActual) {
 bool Tree::verificarYActualizarJefe() {
     if (root == nullptr) return false;
     
+    // Buscar quién es el jefe actual
+    Person* jefeActual = this->encontrarJefeActual(root);
+    if (jefeActual == nullptr) return false;
+    
     // Verificar si el jefe actual debe ser reemplazado
     bool necesitaReemplazo = false;
     string razon;
     
-    if (root->is_dead) {
+    if (jefeActual->is_dead) {
         necesitaReemplazo = true;
         razon = "ha muerto";
-    } else if (root->in_jail) {
+    } else if (jefeActual->in_jail) {
         necesitaReemplazo = true;
-        razon = "esta en la carcel";
-    } else if (root->age >= 70) {
+        razon = "ha sido encarcelado";
+    } else if (jefeActual->age >= 70) {
         necesitaReemplazo = true;
-        razon = "supero los 70 años";
+        razon = "ha superado los 70 años";
     }
     
     if (necesitaReemplazo) {
-        cout << "\nEl jefe " << root->name << " " << root->last_name 
+        cout << "\nEl jefe " << jefeActual->name << " " << jefeActual->last_name 
              << " " << razon << ". Buscando sucesor...\n";
         return asignarNuevoJefe();
     }
@@ -172,11 +177,12 @@ bool Tree::verificarYActualizarJefe() {
 void Tree::buscarSucesorEnArbol(Person* nodo, Person*& sucesor) {
     if (nodo == nullptr || sucesor != nullptr) return;
     
-    // Recorrido in-order para encontrar el primer disponible
+    // Recorrido in-order
     buscarSucesorEnArbol(nodo->left, sucesor);
     
-    // Verificar si este nodo es candidato (vivo, fuera de cárcel, y no es el jefe actual)
-    if (sucesor == nullptr && !nodo->is_dead && !nodo->in_jail && nodo != root) {
+    // Verificar si este nodo es candidato (vivo, fuera de cárcel)
+    // IMPORTANTE: No excluir al jefe actual aquí, porque puede ser candidato si está disponible
+    if (sucesor == nullptr && !nodo->is_dead && !nodo->in_jail) {
         sucesor = nodo;
         return;
     }
@@ -184,36 +190,20 @@ void Tree::buscarSucesorEnArbol(Person* nodo, Person*& sucesor) {
     buscarSucesorEnArbol(nodo->right, sucesor);
 }
 
-Person* Tree::encontrarSucesor(Person* nodo) {
-    if (nodo == nullptr) return nullptr;
-    
-    Person* sucesor = nullptr;
-    
-    // Primero buscar en su subárbol izquierdo (hijos y descendientes)
-    buscarSucesorEnArbol(nodo->left, sucesor);
-    
-    // Si no se encuentra, buscar en el subárbol derecho
-    if (sucesor == nullptr) {
-        buscarSucesorEnArbol(nodo->right, sucesor);
-    }
-    
-    return sucesor;
-}
-
 bool Tree::asignarNuevoJefe() {
-    Person* sucesor = encontrarSucesor(root);
+    Person* jefeActual = this->encontrarJefeActual(root);
+    if (jefeActual == nullptr) return false;
+    
+    // Buscar sucesor (con búsqueda en otro sucesor habilitada)
+    Person* sucesor = encontrarSucesor(jefeActual, true);
     
     if (sucesor != nullptr) {
-        // Quitar la marca de jefe al actual
-        root->is_boss = false;
-        root->was_boss = true;
-        
-        // Asignar nuevo jefe
+        jefeActual->is_boss = false;
+        jefeActual->was_boss = true;
         sucesor->is_boss = true;
         
         cout << "Nuevo jefe asignado: " << sucesor->name << " " 
              << sucesor->last_name << " (ID: " << sucesor->id << ")\n";
-        
         
         return true;
     } else {
@@ -340,4 +330,78 @@ void Tree::actualizarMiembroInteractivo() {
     actualizarMiembro(id, name, last_name, gender, age, 
                       is_dead == 1, in_jail == 1, 
                       was_boss == 1, false); //is_boss colocado siempre false al actualizar manualmente
+}
+
+Person* Tree::findParent(Person* actual, Person* hijo) {
+    if (actual == nullptr) return nullptr;
+    
+    // Verificando si el actual es padre directo del hijo
+    if (actual->left == hijo || actual->right == hijo) {
+        return actual;
+    }
+    
+    // Buscando recursivamente en el subárbol izquierdo
+    Person* izquierdo = findParent(actual->left, hijo);
+    if (izquierdo != nullptr) return izquierdo;
+    
+    // Buscando recursivamente en el subárbol derecho
+    return findParent(actual->right, hijo);
+}
+
+Person* Tree::obtenerPadre(Person* nodo) {
+    if (nodo == nullptr || root == nullptr) return nullptr;
+    
+    // El nodo raíz no tiene padre
+    if (nodo == root) return nullptr;
+    
+    // Buscando el padre usando findParent
+    return findParent(root, nodo);
+}
+
+Person* Tree::obtenerOtroSucesor(Person* nodo) {
+    Person* padre = obtenerPadre(nodo);
+    if (padre == nullptr) return nullptr;
+    
+    // Si el nodo es hijo izquierdo, devolver el derecho (si existe)
+    if (padre->left == nodo) {
+        return padre->right;
+    }
+    // Si es hijo derecho, devolver el izquierdo
+    else if (padre->right == nodo) {
+        return padre->left;
+    }
+    
+    return nullptr;
+}
+
+Person* Tree::buscarSucesorEnArbolCompleto(Person* nodo) {
+    if (nodo == nullptr) return nullptr;
+    
+    Person* sucesor = nullptr;
+    buscarSucesorEnArbol(nodo, sucesor);
+    return sucesor;
+}
+
+Person* Tree::encontrarSucesor(Person* nodo, bool buscarEnOtroSucesor) {
+    if (nodo == nullptr) return nullptr;
+    
+    // Primero se busca en su propio árbol (hijos y descendientes)
+    Person* sucesor = buscarSucesorEnArbolCompleto(nodo);
+    
+    // Si no se encontró y se debe buscar en el otro sucesor
+    if (sucesor == nullptr && buscarEnOtroSucesor) {
+        Person* otroSucesor = obtenerOtroSucesor(nodo);
+        if (otroSucesor != nullptr) {
+            cout << "   Buscando en el otro sucesor: " << otroSucesor->name << endl;
+            sucesor = buscarSucesorEnArbolCompleto(otroSucesor);
+            
+            // Si el otro sucesor está vivo y fuera de cárcel, él mismo puede ser el sucesor
+            if (sucesor == nullptr && !otroSucesor->is_dead && !otroSucesor->in_jail) {
+                sucesor = otroSucesor;
+                cout << "   El otro sucesor se convierte en jefe\n";
+            }
+        }
+    }
+    
+    return sucesor;
 }

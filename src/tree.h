@@ -12,6 +12,11 @@ private:
     Person* findById(Person* node, int id);
     void buscarSucesorEnArbol(Person* nodo, Person*& sucesor);
     void mostrarLineaSucesionRec(Person* nodo, Person* jefeActual);
+    
+    Person* obtenerPadre(Person* nodo);
+    Person* obtenerOtroSucesor(Person* nodo);
+    Person* buscarSucesorEnArbolCompleto(Person* nodo);
+    Person* findParent(Person* actual, Person* hijo);  // Función auxiliar
 
 public:
     Tree();
@@ -19,23 +24,23 @@ public:
 
     Person* getRoot();
     void setRoot(Person* node);
-  
+
     void insert(Person* node);
     Person* findById(int id);
 
     void mostrarLineaSucesion();
-    Person* encontrarJefeActual(Person* nodo);
+    Person* encontrarJefeActual(Person* nodo); 
 
     bool verificarYActualizarJefe();
-    Person* encontrarSucesor(Person* nodo);
+    Person* encontrarSucesor(Person* nodo, bool buscarEnOtroSucesor = true);
+
     bool asignarNuevoJefe();
 
-    
     bool actualizarMiembro(int id, string name, string last_name, char gender, 
                        int age, bool is_dead, bool in_jail, 
                        bool was_boss, bool is_boss);
-    void mostrarMiembro(Person* p);
 
+    void mostrarMiembro(Person* p);
     void actualizarMiembroInteractivo();
    };
 
