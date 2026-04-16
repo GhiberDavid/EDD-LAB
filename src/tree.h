@@ -12,14 +12,20 @@ private:
 
 public:
     Tree();
-    void setRoot(Person* node);
+    ~Tree();
+
     Person* getRoot();
+    void setRoot(Person* node);
+  
 
     void insert(Person* node);
     Person* findById(Person* node, int id);
+
+    void mostrarLineaSucesion();
+    void mostrarArbol();
 };
 
-
+Person* createPersonFromCSV(string line);
 void loadFromCSV(Tree& tree, const string& filename);
 
 #endif

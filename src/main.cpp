@@ -3,21 +3,19 @@
 
 using namespace std;
 
-void loadFromCSV(const string& filename);
-
 int main() {
-    cout << "Sistema de sucesion de la mafia\n";
+    cout << "Sistema de sucesion de la mafia ===\n" << endl;
 
     Tree tree;
 
-   if (tree.getRoot() != nullptr) {
-    cout << "Root: " << tree.getRoot()->name << endl;
-} else {
-    cout << "Root es NULL (arbol no construido)" << endl;
-}
+    loadFromCSV(tree, "bin/data.csv");
 
-    cout << "Root: " << tree.getRoot()->name << endl;
-    loadFromCSV(tree, "data.csv");
+       if (tree.getRoot() != nullptr) {
+        cout << "Jefe actual: " << tree.getRoot()->name << " " 
+             << tree.getRoot()->last_name << endl;
+    } else {
+        cout << "Error: No se pudo cargar el arbol" << endl;
+    }
 
     return 0;
 }

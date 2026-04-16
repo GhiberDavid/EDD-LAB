@@ -23,6 +23,10 @@ struct Person {
     Person() {
         left = nullptr;
         right = nullptr;
+        is_dead = false;
+        in_jail = false;
+        was_boss = false;
+        is_boss = false;
     }
 };
 
