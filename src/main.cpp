@@ -53,7 +53,7 @@ int main() {
                 tree.verificarYActualizarJefe();
                 break;
             case 5:
-                cout << "Funcionalidad en desarrollo...\n";
+                tree.actualizarMiembroInteractivo();
                 break;
             case 6:
                 cout << "Saliendo del sistema...\n";

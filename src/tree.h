@@ -28,6 +28,14 @@ public:
     bool verificarYActualizarJefe();
     Person* encontrarSucesor(Person* nodo);
     bool asignarNuevoJefe();
+
+    
+bool actualizarMiembro(int id, string name, string last_name, char gender, 
+                       int age, bool is_dead, bool in_jail, 
+                       bool was_boss, bool is_boss);
+void mostrarMiembro(Person* p);
+
+void actualizarMiembroInteractivo();
 };
 
 Person* createPersonFromCSV(string line);
