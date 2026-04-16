@@ -24,7 +24,7 @@ private:
     int contarSucesoresDisponibles(Person* nodo, bool incluirEncarcelados = false);
     Person* buscarSucesorIncluyendoEncarcelados(Person* nodo);
     bool esDisponible(Person* nodo, bool incluirEncarcelados = false);
-
+    void buscarSucesorIncluyendoEncarcelados(Person* nodo, Person*& sucesor);
 public:
     Tree();
     ~Tree();
