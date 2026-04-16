@@ -1,4 +1,4 @@
-#Sistema de Sucesión de la Mafia
+# Sistema de Sucesión de la Mafia
 
 ##Descripción: Sistema en C++ que gestiona la línea de sucesión de una familia mafiosa utilizando un "árbol binario". Este programa permite cargar datos desde un archivo CSV, mostrar la línea de sucesión de toda la familia mafiosa, simular eventos (muerte, encarcelamiento, envejecimiento) y actualizar datos de los miembros.
 
